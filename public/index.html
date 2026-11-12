@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f8f7f3" />
+  <title>Zaykaa — good food, good mood</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Zaykaa home"><span class="brand-mark">z</span><span>zaykaa<span class="brand-period">.</span></span></a>
+      <div class="sidebar-label">YOUR SPACE</div>
+      <button class="nav-item active"><span class="nav-icon">✳</span> Food assistant</button>
+      <button class="nav-item" id="orderShortcut"><span class="nav-icon">▤</span> Track an order <span class="nav-badge">2</span></button>
+      <div class="sidebar-rule"></div>
+      <div class="sidebar-label">QUICK START</div>
+      <button class="suggestion-link" data-prompt="Show me vegetarian options">🥬 <span>Vegetarian picks</span></button>
+      <button class="suggestion-link" data-prompt="Recommend something spicy">🌶️ <span>Something spicy</span></button>
+      <button class="suggestion-link" data-prompt="Track order ZY-2048">📦 <span>Track my order</span></button>
+      <div class="sidebar-bottom"><div class="avatar">N</div><div><strong>Namaste!</strong><span>Your food companion</span></div><button class="more-button" aria-label="More options">···</button></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><div class="mobile-brand"><span class="brand-mark">z</span> zaykaa<span class="brand-period">.</span></div><div class="service-pill"><span class="online-dot"></span> Here to help <span class="pill-chevron">⌄</span></div></header>
+      <section class="conversation" id="conversation" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <div class="welcome-spark">✳</div>
+          <div class="eyebrow">YOUR PERSONAL FOOD COMPANION</div>
+          <h1>Good food starts<br>with a <span>good chat.</span></h1>
+          <p>Craving something? Need a hand with an order?<br>I’m here to make it easy.</p>
+          <div class="starter-grid">
+            <button class="starter-card" data-prompt="Recommend something filling and vegetarian"><span class="starter-emoji">🥗</span><span><strong>Find my next favourite</strong><small>Personalised food picks</small></span><span class="card-arrow">↗</span></button>
+            <button class="starter-card" data-prompt="Track order ZY-2048"><span class="starter-emoji">🛵</span><span><strong>Where’s my order?</strong><small>Quick delivery updates</small></span><span class="card-arrow">↗</span></button>
+            <button class="starter-card" data-prompt="How long does delivery take?"><span class="starter-emoji">💬</span><span><strong>Ask us anything</strong><small>We’re happy to help</small></span><span class="card-arrow">↗</span></button>
+          </div>
+          <div class="today-note"><span>✦</span> Made for your cravings, powered by a little Zaykaa magic</div>
+        </div>
+        <div class="messages" id="messages"></div>
+      </section>
+      <footer class="composer-wrap"><form class="composer" id="chatForm"><input id="messageInput" autocomplete="off" placeholder="Ask me anything, or tell me what you’re craving…" aria-label="Your message"><button class="send-button" type="submit" aria-label="Send message">↑</button></form><div class="composer-hint">Zaykaa can make mistakes. Check important order details in the app.</div></footer>
+    </main>
+  </div>
+</body>
+</html>
