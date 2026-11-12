@@ -1,4 +1,5 @@
 const { db } = require('./database');
+const { getAIConfig } = require('./ai-config');
 
 function requireNonEmptyText(value, name) {
   if (typeof value !== 'string' || !value.trim()) throw new TypeError(`${name} must be a non-empty string.`);
@@ -10,11 +11,20 @@ function terms(text) {
   return text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(token => token.length > 1 && !stop.has(token));
 }
 function documentText(doc) { return `Question: ${doc.question}\nAnswer: ${doc.answer}`; }
-const embeddingModel = () => process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small';
+const embeddingModel = () => getAIConfig().embeddingIndexModel;
 
 let embeddingsPromise;
 function getEmbeddings() {
-  if (!embeddingsPromise) embeddingsPromise = import('@langchain/openai').then(({ OpenAIEmbeddings }) => new OpenAIEmbeddings({ model: embeddingModel() }));
+  if (!embeddingsPromise) {
+    const config = getAIConfig();
+    if (config.provider === 'google') {
+      embeddingsPromise = import('@langchain/google-genai').then(({ GoogleGenerativeAIEmbeddings }) =>
+        new GoogleGenerativeAIEmbeddings({ model: config.embeddingModel, apiKey: config.apiKey }));
+    } else {
+      embeddingsPromise = import('@langchain/openai').then(({ OpenAIEmbeddings }) =>
+        new OpenAIEmbeddings({ model: config.embeddingModel, apiKey: config.apiKey }));
+    }
+  }
   return embeddingsPromise;
 }
 function readVector(value) {
@@ -35,8 +45,9 @@ function getFaqIndexStatus() {
   return { ready: total > 0 && indexed === total, total, indexed, model: modelName };
 }
 async function indexFaqDocuments() {
-  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is required to build the FAQ embedding index.');
-  const modelName = embeddingModel();
+  const config = getAIConfig();
+  if (!config.apiKey) throw new Error(config.apiKeyName + ' is required to build the FAQ embedding index.');
+  const modelName = config.embeddingIndexModel;
   const rows = db.prepare('SELECT id, question, answer, embedding_model, embedding_dimensions, embedding_json FROM faq_documents ORDER BY id').all();
   const missing = rows.filter(row => {
     const vector = readVector(row.embedding_json);
@@ -107,7 +118,7 @@ async function searchFaq(question) {
   const vectors = docs.map(doc => doc.embedding_model === modelName ? readVector(doc.embedding_json) : null);
   const ready = vectors.every(Boolean);
   let queryVector = null;
-  if (ready && process.env.OPENAI_API_KEY) queryVector = await (await getEmbeddings()).embedQuery(question);
+  if (ready && getAIConfig().apiKey) queryVector = await (await getEmbeddings()).embedQuery(question);
   const ranked = docs.map((doc, index) => {
     const bm25 = lexical[index];
     const cosine = queryVector ? cosineSimilarity(queryVector, vectors[index]) : null;

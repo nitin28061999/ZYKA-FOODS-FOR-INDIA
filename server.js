@@ -4,6 +4,7 @@ const path = require('node:path');
 const { handleMessage, closeOrchestrator } = require('./src/agents');
 const { enqueueFaqIndex, closeFaqQueue } = require('./src/faq-queue');
 const { getFaqIndexStatus } = require('./src/data-tools');
+const { getAIConfig } = require('./src/ai-config');
 
 const root = path.join(__dirname, 'public');
 const port = Number(process.env.PORT || 3000);
@@ -102,7 +103,8 @@ const server = http.createServer((req, res) => {
       if (typeof threadId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(threadId)) {
         return sendJson(res, 400, { error: 'Refresh the page to start a new chat.' });
       }
-      if (!process.env.OPENAI_API_KEY) return sendJson(res, 503, { error: 'Add your OpenAI key to .env, then restart Zaykaa to enable the AI agents.' });
+      const ai = getAIConfig();
+      if (!ai.apiKey) return sendJson(res, 503, { error: 'Add ' + ai.apiKeyName + ' to .env, then restart Zaykaa to enable the AI agents.' });
       try {
         const result = await handleMessage(message.trim(), threadId);
         sendJson(res, 200, result);
@@ -146,7 +148,7 @@ function sendJson(res, status, value) {
 server.listen(port, '127.0.0.1', () => {
   const actualPort = server.address().port;
   console.log('Zaykaa is running at http://localhost:' + actualPort);
-  if (process.env.OPENAI_API_KEY) {
+  if (getAIConfig().apiKey) {
     enqueueFaqIndex().then(result => console.log('FAQ indexing queue: ' + result.status))
       .catch(error => console.warn('FAQ indexing was not queued (start Redis with docker compose up -d): ' + error.message));
   }

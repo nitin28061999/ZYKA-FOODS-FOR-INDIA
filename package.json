@@ -20,6 +20,8 @@
     "langchain": "^1.6.5",
     "zod": "^4.6.7",
     "bullmq": "^6.7.5",
-    "ioredis": "^6.2.0"
+    "ioredis": "^6.2.0",
+    "@langchain/google": "^0.2.14",
+    "@langchain/google-genai": "^2.3.6"
   }
 }

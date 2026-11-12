@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { getAIConfig } = require('./ai-config');
 
 function textOf(content) {
   if (typeof content === 'string') return content;
@@ -12,9 +13,11 @@ function findMcpTool(tools, suffix) {
 }
 
 async function buildOrchestrator() {
-  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured. Copy .env.example to .env and add your key.');
-  const [{ StateGraph, StateSchema, MessagesValue, MemorySaver, START, END }, { createAgent }, { ChatOpenAI }, { MCPAdapter }, { z }] = await Promise.all([
-    import('@langchain/langgraph'), import('langchain'), import('@langchain/openai'), import('@langchain/mcp-adapters'), import('zod/v4'),
+  const ai = getAIConfig();
+  if (!ai.apiKey) throw new Error(ai.apiKeyName + ' is not configured. Add it to .env and restart Zaykaa.');
+  const modelImport = ai.provider === 'google' ? import('@langchain/google/node') : import('@langchain/openai');
+  const [{ StateGraph, StateSchema, MessagesValue, MemorySaver, START, END }, { createAgent }, modelPackage, { MCPAdapter }, { z }] = await Promise.all([
+    import('@langchain/langgraph'), import('langchain'), modelImport, import('@langchain/mcp-adapters'), import('zod/v4'),
   ]);
   const RouteSchema = z.object({ route: z.enum(['faq', 'order', 'recommendation']) });
   const ChatState = new StateSchema({
@@ -22,7 +25,8 @@ async function buildOrchestrator() {
     route: z.enum(['faq', 'order', 'recommendation']).optional(),
     reply: z.string().optional(),
   });
-  const model = new ChatOpenAI({ model: process.env.OPENAI_MODEL || 'gpt-4.1-mini', temperature: 0 });
+  const ChatModel = ai.provider === 'google' ? modelPackage.ChatGoogle : modelPackage.ChatOpenAI;
+  const model = new ChatModel({ model: ai.chatModel, apiKey: ai.apiKey, temperature: 0 });
   const classifier = model.withStructuredOutput(RouteSchema);
 
   const mcpAdapter = new MCPAdapter({

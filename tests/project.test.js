@@ -3,6 +3,7 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 const { after, before, test } = require('node:test');
 const { db } = require('../src/database');
+const { getAIConfig } = require('../src/ai-config');
 const { getFaqIndexStatus, lookupOrder, searchFaq, searchMenu } = require('../src/data-tools');
 
 const projectRoot = path.resolve(__dirname, '..');
@@ -14,7 +15,7 @@ before(async () => {
   const port = 0;
   child = spawn(process.execPath, ['--env-file-if-exists=.env', 'server.js'], {
     cwd: projectRoot,
-    env: { ...process.env, PORT: String(port), OPENAI_API_KEY: '', CORS_ORIGINS: 'http://localhost:5173' },
+    env: { ...process.env, PORT: String(port), AI_PROVIDER: 'google', GEMINI_API_KEY: '', GOOGLE_API_KEY: '', OPENAI_API_KEY: '', CORS_ORIGINS: 'http://localhost:5173' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   child.stderr.on('data', chunk => { childOutput += chunk.toString(); });
@@ -80,7 +81,7 @@ test('FAQ indexing status rejects malformed stored vectors', () => {
   try {
     const id = db.prepare('SELECT id FROM faq_documents LIMIT 1').get().id;
     db.prepare('UPDATE faq_documents SET embedding_model = ?, embedding_dimensions = 2, embedding_json = ? WHERE id = ?')
-      .run(process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small', '[1]', id);
+      .run(getAIConfig().embeddingIndexModel, '[1]', id);
     assert.equal(getFaqIndexStatus().ready, false);
   } finally {
     db.exec('ROLLBACK');
