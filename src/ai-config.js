@@ -1,7 +1,8 @@
 const PROVIDERS = new Set(['google', 'openai']);
 
 function getAIConfig() {
-  const provider = (process.env.AI_PROVIDER || 'google').trim().toLowerCase();
+  const requestedProvider = (process.env.AI_PROVIDER || '').trim().toLowerCase();
+  const provider = requestedProvider || ((process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) ? 'google' : (process.env.OPENAI_API_KEY ? 'openai' : 'google'));
   if (!PROVIDERS.has(provider)) throw new Error('AI_PROVIDER must be google or openai.');
 
   if (provider === 'google') {

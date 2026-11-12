@@ -44,6 +44,14 @@ test('AI provider accepts Google’s GOOGLE_API_KEY alias', () => {
   });
 });
 
+test('an existing OpenAI key is auto-selected when AI_PROVIDER is omitted', () => {
+  const { getAIConfig } = require('../src/ai-config');
+  withEnv({ OPENAI_API_KEY: 'openai-secret' }, () => {
+    assert.equal(getAIConfig().provider, 'openai');
+    assert.equal(getAIConfig().apiKey, 'openai-secret');
+  });
+});
+
 test('OpenAI remains selectable with provider-specific models and key', () => {
   const { getAIConfig } = require('../src/ai-config');
   withEnv({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'openai-secret' }, () => {
